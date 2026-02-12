@@ -33,3 +33,5 @@ Thumbs.db
 # Build y dist
 dist/
 build/
+
+/src/generated/prisma
