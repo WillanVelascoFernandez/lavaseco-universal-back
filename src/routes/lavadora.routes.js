@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
+import { publishMessage } from '../lib/mqtt.js';
 
 const router = Router();
 
@@ -46,6 +47,14 @@ router.post('/:id/toggle', async (req, res) => {
     const lavadoraActualizada = await prisma.lavadora.update({
       where: { id: parseInt(id) },
       data: { isEnable: !lavadora.isEnable }
+    });
+
+    // Enviar mensaje MQTT
+    publishMessage(`lavadoras/${id}/status`, {
+      id: lavadoraActualizada.id,
+      sucursal: lavadoraActualizada.sucursal,
+      isEnable: lavadoraActualizada.isEnable,
+      updatedAt: lavadoraActualizada.updatedAt
     });
 
     res.json({
