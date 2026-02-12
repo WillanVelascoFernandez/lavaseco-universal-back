@@ -21,7 +21,39 @@ model Usuario {
   
   // Fechas de control
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt      @map("updated_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("usuarios")
+}
+
+// Modelo para las Lavadoras (Gestión de máquinas)
+model Lavadora {
+  id        Int      @id @default(autoincrement())
+  sucursal  String
+  isEnable  Boolean  @default(true) @map("is_enable")
+  
+  // Relaciones
+  registros RegistroLavadora[]
+
+  // Fechas de control
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("lavadoras")
+}
+
+// Modelo para el historial/uso de las lavadoras
+model RegistroLavadora {
+  id          Int      @id @default(autoincrement())
+  lavadoraId  Int      @map("id_lavadora")
+  tipoLavado  String   @map("tipo_lavado")
+  
+  // Relación con Lavadora
+  lavadora    Lavadora @relation(fields: [lavadoraId], references: [id])
+
+  // Fechas de control
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("registro_lavadoras")
 }

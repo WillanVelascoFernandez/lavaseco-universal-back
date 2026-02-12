@@ -1,5 +1,6 @@
 import express from 'express';
 import authRoutes from './routes/auth.routes.js';
+import lavadoraRoutes from './routes/lavadora.routes.js';
 
 const app = express();
 
@@ -8,6 +9,7 @@ app.use(express.json());
 
 // Rutas
 app.use('/api/auth', authRoutes);
+app.use('/api/lavadoras', lavadoraRoutes);
 
 // Una ruta de prueba para verificar que funciona
 app.get('/', (req, res) => {
