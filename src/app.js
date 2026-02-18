@@ -4,6 +4,7 @@ import authRoutes from './routes/auth.routes.js';
 import lavadoraRoutes from './routes/lavadora.routes.js';
 import secadoraRoutes from './routes/secadora.routes.js';
 import roleRoutes from './routes/role.routes.js';
+import userRoutes from './routes/user.routes.js';
 import sucursalRoutes from './routes/sucursal.routes.js';
 import './lib/mqtt.js';
 
@@ -18,6 +19,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/lavadoras', lavadoraRoutes);
 app.use('/api/secadoras', secadoraRoutes);
 app.use('/api/roles', roleRoutes);
+app.use('/api/usuarios', userRoutes);
 app.use('/api/sucursales', sucursalRoutes);
 
 // Ruta de prueba
