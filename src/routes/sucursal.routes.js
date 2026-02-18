@@ -4,12 +4,10 @@ import { authenticateToken, authorizePermission } from '../middlewares/auth.midd
 
 const router = Router();
 
-// Todas las rutas de sucursales están protegidas
 router.use(authenticateToken);
 
-router.get('/', sucursalController.getSucursales); // Ver sucursales (Cualquier autenicado por ahora)
-
-router.post('/', authorizePermission('manage_branches'), sucursalController.createSucursal);
-router.delete('/:id', authorizePermission('manage_branches'), sucursalController.deleteSucursal);
+router.get('/', authorizePermission('branches_view'), sucursalController.getSucursales);
+router.post('/', authorizePermission('branches_create'), sucursalController.createSucursal);
+router.delete('/:id', authorizePermission('branches_delete'), sucursalController.deleteSucursal);
 
 export default router;

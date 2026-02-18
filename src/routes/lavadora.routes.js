@@ -4,13 +4,10 @@ import { authenticateToken, authorizePermission } from '../middlewares/auth.midd
 
 const router = Router();
 
-// Todas las rutas protegidas
 router.use(authenticateToken);
 
-router.get('/', lavadoraController.getLavadoras);
-
-// Solo operadores o admins pueden crear o accionar lavadoras
-router.post('/', authorizePermission('manage_branches'), lavadoraController.createLavadora);
-router.post('/:id/toggle', authorizePermission('operate_machines'), lavadoraController.toggleLavadora);
+router.get('/', authorizePermission('washers_view'), lavadoraController.getLavadoras);
+router.post('/', authorizePermission('washers_create'), lavadoraController.createLavadora);
+router.post('/:id/toggle', authorizePermission('washers_toggle'), lavadoraController.toggleLavadora);
 
 export default router;

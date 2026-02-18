@@ -4,10 +4,9 @@ import { authenticateToken, authorizePermission } from '../middlewares/auth.midd
 
 const router = Router();
 
-// Login es público
 router.post('/login', authController.login);
 
-// Registro de nuevos usuarios requiere permiso de administrador
-router.post('/register', authenticateToken, authorizePermission('manage_users'), authController.register);
+// Registro requiere permiso específico de creación de usuarios
+router.post('/register', authenticateToken, authorizePermission('users_create'), authController.register);
 
 export default router;
