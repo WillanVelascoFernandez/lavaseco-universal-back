@@ -16,15 +16,3 @@ model Branch {
 
   @@map("branches")
 }
-
-// Pivot table (Many-to-Many Bridge)
-model UserBranch {
-  userId      Int      @map("user_id")
-  branchId    Int      @map("branch_id")
-  
-  user        User     @relation(fields: [userId], references: [id])
-  branch      Branch   @relation(fields: [branchId], references: [id])
-
-  @@id([userId, branchId])
-  @@map("users_branches")
-}

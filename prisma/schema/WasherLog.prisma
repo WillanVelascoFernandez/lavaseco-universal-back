@@ -1,0 +1,12 @@
+model WasherLog {
+  id          Int      @id @default(autoincrement())
+  washerId    Int      @map("washer_id")
+  washType    String   @map("wash_type")
+  
+  washer      Washer   @relation(fields: [washerId], references: [id])
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("washers_logs")
+}
