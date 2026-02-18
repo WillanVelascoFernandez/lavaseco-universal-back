@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import * as branchController from '../controllers/sucursal.controller.js';
+import * as branchController from '../controllers/branch.controller.js';
 import { authenticateToken, authorizePermission } from '../middlewares/auth.middleware.js';
 
 const router = Router();
