@@ -17,10 +17,14 @@ export async function seedRoles(prisma) {
 
   const admin = await prisma.rol.upsert({
     where: { nombre: 'ADMIN' },
-    update: { permisos: adminPermissions },
+    update: { 
+      permisos: adminPermissions,
+      isProtected: true
+    },
     create: {
       nombre: 'ADMIN',
-      permisos: adminPermissions
+      permisos: adminPermissions,
+      isProtected: true
     }
   });
 

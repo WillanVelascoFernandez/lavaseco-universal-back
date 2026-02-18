@@ -16,6 +16,7 @@ model Rol {
   id          Int       @id @default(autoincrement())
   nombre      String    @unique // ADMIN, SUPERVISOR, OPERADOR
   permisos    Json?     // Ej: { "view_reports": true, "manage_users": true }
+  isProtected Boolean   @default(false) @map("is_protected")
   
   usuarios    Usuario[]
 

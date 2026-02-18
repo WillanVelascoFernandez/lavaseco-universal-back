@@ -36,6 +36,12 @@ export const updateRole = async (req, res) => {
     const { id } = req.params;
     const { nombre, permisos } = req.body;
 
+    // Evitar editar roles protegidos por el sistema
+    const rol = await prisma.rol.findUnique({ where: { id: parseInt(id) } });
+    if (rol.isProtected) {
+      return res.status(400).json({ message: 'No se puede editar un rol protegido por el sistema.' });
+    }
+
     const rolActualizado = await prisma.rol.update({
       where: { id: parseInt(id) },
       data: {
@@ -55,10 +61,10 @@ export const deleteRole = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Evitar borrar el rol ADMIN por seguridad
+    // Evitar borrar roles protegidos por el sistema
     const rol = await prisma.rol.findUnique({ where: { id: parseInt(id) } });
-    if (rol.nombre === 'ADMIN') {
-      return res.status(400).json({ message: 'No se puede eliminar el rol de Administrador.' });
+    if (rol.isProtected) {
+      return res.status(400).json({ message: 'No se puede eliminar un rol protegido por el sistema.' });
     }
 
     await prisma.rol.delete({ where: { id: parseInt(id) } });
