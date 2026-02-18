@@ -1,0 +1,33 @@
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // ADMIN, SUPERVISOR, OPERATOR
+  permissions Json?    // e.g.: { "view_reports": true, "manage_users": true }
+  isProtected Boolean  @default(false) @map("is_protected")
+  
+  users       User[]
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("roles")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  active    Boolean  @default(true) @map("is_active")
+  
+  // Role relation
+  roleId    Int      @map("role_id")
+  role      Role     @relation(fields: [roleId], references: [id])
+  
+  // User branch relation (Many-to-Many)
+  branches  UserBranch[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("users")
+}
