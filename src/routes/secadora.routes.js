@@ -1,62 +1,10 @@
 import { Router } from 'express';
-import prisma from '../lib/prisma.js';
-import { publishMessage } from '../lib/mqtt.js';
+import * as secadoraController from '../controllers/secadora.controller.js';
 
 const router = Router();
 
-// Obtener todas las secadoras
-router.get('/', async (req, res) => {
-  try {
-    const secadoras = await prisma.secadora.findMany({
-      include: { sucursal: true },
-      orderBy: { id: 'asc' }
-    });
-    res.json(secadoras);
-  } catch (error) {
-    res.status(500).json({ message: 'Error al obtener secadoras' });
-  }
-});
-
-// Crear una nueva secadora
-router.post('/', async (req, res) => {
-  try {
-    const { sucursalId } = req.body;
-    const nueva = await prisma.secadora.create({
-      data: { sucursalId: parseInt(sucursalId) }
-    });
-    res.status(201).json(nueva);
-  } catch (error) {
-    res.status(500).json({ message: 'Error al crear secadora' });
-  }
-});
-
-// Toggle Habilitar/Deshabilitar
-router.post('/:id/toggle', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const secadora = await prisma.secadora.findUnique({ where: { id: parseInt(id) } });
-
-    if (!secadora) return res.status(404).json({ message: 'Secadora no encontrada' });
-
-    const actualizada = await prisma.secadora.update({
-      where: { id: parseInt(id) },
-      data: { isEnable: !secadora.isEnable }
-    });
-
-    // Notify via MQTT
-    publishMessage(`secadoras/${id}/status`, {
-      type: 'dryer',
-      id: actualizada.id,
-      isEnable: actualizada.isEnable
-    });
-
-    res.json({
-      message: `Secadora ${actualizada.isEnable ? 'habilitada' : 'deshabilitada'}`,
-      secadora: actualizada
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Error al cambiar estado' });
-  }
-});
+router.get('/', secadoraController.getSecadoras);
+router.post('/', secadoraController.createSecadora);
+router.post('/:id/toggle', secadoraController.toggleSecadora);
 
 export default router;
