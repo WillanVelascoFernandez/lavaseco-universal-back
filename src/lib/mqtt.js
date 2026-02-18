@@ -15,66 +15,49 @@ const options = {
 
 const client = mqtt.connect(`mqtt://${options.host}`, options);
 
-const REGISTRO_TOPIC = 'lavadoras/+/uso'; // Escucha lavadoras/1/uso, lavadoras/2/uso, etc.
+const WASHER_TOPIC = 'lavadoras/+/uso';
+const DRYER_TOPIC = 'secadoras/+/uso';
 
 client.on('connect', () => {
   console.log('✅ Conectado al servidor MQTT:', process.env.MQTT_HOST);
-  
-  // Suscribirse al tópico de uso
-  client.subscribe(REGISTRO_TOPIC, (err) => {
-    if (!err) {
-      console.log('📡 Suscrito a:', REGISTRO_TOPIC);
-    }
+  client.subscribe([WASHER_TOPIC, DRYER_TOPIC], (err) => {
+    if (!err) console.log('📡 Suscrito a los tópicos de máquinas');
   });
 });
 
-// Manejar mensajes entrantes
 client.on('message', async (topic, message) => {
   try {
     const topicParts = topic.split('/');
-    
-    // Verificar si es un tópico de registro de uso
-    if (topicParts[0] === 'lavadoras' && topicParts[2] === 'uso') {
-      const lavadoraId = parseInt(topicParts[1]);
+    const type = topicParts[0]; // lavadoras o secadoras
+    const id = parseInt(topicParts[1]);
+    const action = topicParts[2]; // uso
+
+    if (action === 'uso') {
       const data = JSON.parse(message.toString());
-      
-      console.log(`📥 Nuevo registro recibido para Lavadora ${lavadoraId}:`, data);
 
-      // Guardar en la base de datos
-      const nuevoRegistro = await prisma.registroLavadora.create({
-        data: {
-          lavadoraId: lavadoraId,
-          tipoLavado: data.tipoLavado || 'Normal'
-        },
-        include: {
-          lavadora: true
-        }
-      });
-
-      console.log('💾 Registro guardado con éxito:', nuevoRegistro.id);
-      
-      // Opcional: Publicar confirmación
-      publishMessage(`lavadoras/${lavadoraId}/confirmacion`, {
-        status: 'OK',
-        registroId: nuevoRegistro.id,
-        mensaje: 'Uso registrado correctamente'
-      });
+      if (type === 'lavadoras') {
+        const reg = await prisma.registroLavadora.create({
+          data: { lavadoraId: id, tipoLavado: data.tipoLavado || 'Normal' }
+        });
+        console.log('💾 Lavadora registrada:', reg.id);
+        publishMessage(`lavadoras/${id}/confirmacion`, { status: 'OK', registroId: reg.id });
+      } 
+      else if (type === 'secadoras') {
+        const reg = await prisma.registroSecadora.create({
+          data: { secadoraId: id, tipoSecado: data.tipoSecado || 'Normal' }
+        });
+        console.log('💾 Secadora registrada:', reg.id);
+        publishMessage(`secadoras/${id}/confirmacion`, { status: 'OK', registroId: reg.id });
+      }
     }
   } catch (error) {
-    console.error('❌ Error procesando mensaje MQTT:', error.message);
+    console.error('❌ Error MQTT:', error.message);
   }
-});
-
-client.on('error', (err) => {
-  console.error('❌ Error en conexión MQTT:', err);
 });
 
 export const publishMessage = (topic, message) => {
   if (client.connected) {
-    client.publish(topic, JSON.stringify(message), { qos: 1 }, (err) => {
-      if (err) console.error('Error publicando mensaje MQTT:', err);
-      else console.log(`📤 Mensaje enviado a ${topic}:`, message);
-    });
+    client.publish(topic, JSON.stringify(message), { qos: 1 });
   }
 };
 

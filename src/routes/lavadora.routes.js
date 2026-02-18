@@ -8,6 +8,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   try {
     const lavadoras = await prisma.lavadora.findMany({
+      include: { sucursal: true },
       orderBy: { id: 'asc' }
     });
     res.json(lavadoras);
@@ -19,12 +20,13 @@ router.get('/', async (req, res) => {
 // Crear una nueva lavadora
 router.post('/', async (req, res) => {
   try {
-    const { sucursal } = req.body;
+    const { sucursalId } = req.body;
     const nuevaLavadora = await prisma.lavadora.create({
-      data: { sucursal }
+      data: { sucursalId: parseInt(sucursalId) }
     });
     res.status(201).json(nuevaLavadora);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Error al crear lavadora' });
   }
 });
@@ -34,7 +36,6 @@ router.post('/:id/toggle', async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Primero buscamos la lavadora para saber su estado actual
     const lavadora = await prisma.lavadora.findUnique({
       where: { id: parseInt(id) }
     });
@@ -43,7 +44,6 @@ router.post('/:id/toggle', async (req, res) => {
       return res.status(404).json({ message: 'Lavadora no encontrada' });
     }
 
-    // Cambiamos el estado al opuesto
     const lavadoraActualizada = await prisma.lavadora.update({
       where: { id: parseInt(id) },
       data: { isEnable: !lavadora.isEnable }
@@ -51,8 +51,8 @@ router.post('/:id/toggle', async (req, res) => {
 
     // Enviar mensaje MQTT
     publishMessage(`lavadoras/${id}/status`, {
+      type: 'washer',
       id: lavadoraActualizada.id,
-      sucursal: lavadoraActualizada.sucursal,
       isEnable: lavadoraActualizada.isEnable,
       updatedAt: lavadoraActualizada.updatedAt
     });

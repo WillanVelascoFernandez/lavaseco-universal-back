@@ -10,50 +10,132 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Modelo para el Login y gestión de usuarios del sistema
+// --- SEGURIDAD Y ACCESO ---
+
+model Rol {
+  id          Int       @id @default(autoincrement())
+  nombre      String    @unique // ADMIN, SUPERVISOR, OPERADOR
+  permisos    Json?     // Ej: { "view_reports": true, "manage_users": true }
+  
+  usuarios    Usuario[]
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  @@map("roles")
+}
+
 model Usuario {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
   nombre    String?
-  rol       String   @default("USER") // ADMIN, USER, OPERADOR
   activo    Boolean  @default(true)
   
-  // Fechas de control
+  // Relación con Rol
+  rolId     Int      @map("rol_id")
+  rol       Rol      @relation(fields: [rolId], references: [id])
+  
+  // Un usuario puede pertenecer a múltiples sucursales
+  sucursales UsuarioSucursal[]
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("usuarios")
 }
 
-// Modelo para las Lavadoras (Gestión de máquinas)
-model Lavadora {
-  id        Int      @id @default(autoincrement())
-  sucursal  String
-  isEnable  Boolean  @default(true) @map("is_enable")
-  
-  // Relaciones
-  registros RegistroLavadora[]
+// --- ESTRUCTURA FÍSICA ---
 
-  // Fechas de control
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+model Sucursal {
+  id          Int       @id @default(autoincrement())
+  nombre      String    @unique
+  direccion   String?
+  telefono    String?
+  
+  // Máquinas de esta sucursal
+  lavadoras   Lavadora[]
+  secadoras   Secadora[]
+  
+  // Usuarios asignados
+  usuarios    UsuarioSucursal[]
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  @@map("sucursales")
+}
+
+// Tabla Pivot para Usuarios y Sucursales (Muchos a Muchos)
+model UsuarioSucursal {
+  usuarioId   Int       @map("usuario_id")
+  sucursalId  Int       @map("sucursal_id")
+  
+  usuario     Usuario   @relation(fields: [usuarioId], references: [id])
+  sucursal    Sucursal  @relation(fields: [sucursalId], references: [id])
+
+  @@id([usuarioId, sucursalId])
+  @@map("usuarios_sucursales")
+}
+
+// --- MÁQUINAS ---
+
+model Lavadora {
+  id          Int      @id @default(autoincrement())
+  isEnable    Boolean  @default(true) @map("is_enable")
+  
+  // Relación con Sucursal
+  sucursalId  Int      @map("sucursal_id")
+  sucursal    Sucursal @relation(fields: [sucursalId], references: [id])
+  
+  registros   RegistroLavadora[]
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("lavadoras")
 }
 
-// Modelo para el historial/uso de las lavadoras
+model Secadora {
+  id          Int      @id @default(autoincrement())
+  isEnable    Boolean  @default(true) @map("is_enable")
+  
+  // Relación con Sucursal
+  sucursalId  Int      @map("sucursal_id")
+  sucursal    Sucursal @relation(fields: [sucursalId], references: [id])
+  
+  registros   RegistroSecadora[]
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("secadoras")
+}
+
+// --- REGISTROS DE USO ---
+
 model RegistroLavadora {
   id          Int      @id @default(autoincrement())
   lavadoraId  Int      @map("id_lavadora")
   tipoLavado  String   @map("tipo_lavado")
   
-  // Relación con Lavadora
   lavadora    Lavadora @relation(fields: [lavadoraId], references: [id])
 
-  // Fechas de control
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("registro_lavadoras")
+}
+
+model RegistroSecadora {
+  id          Int      @id @default(autoincrement())
+  secadoraId  Int      @map("id_secadora")
+  tipoSecado  String   @map("tipo_secado")
+  
+  secadora    Secadora @relation(fields: [secadoraId], references: [id])
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("registro_secadoras")
 }
