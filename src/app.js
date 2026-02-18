@@ -1,33 +1,29 @@
 import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth.routes.js';
-import lavadoraRoutes from './routes/lavadora.routes.js';
-import secadoraRoutes from './routes/secadora.routes.js';
+import washerRoutes from './routes/washer.routes.js';
+import dryerRoutes from './routes/dryer.routes.js';
 import roleRoutes from './routes/role.routes.js';
 import userRoutes from './routes/user.routes.js';
-import sucursalRoutes from './routes/sucursal.routes.js';
+import branchRoutes from './routes/branch.routes.js';
 import './lib/mqtt.js';
 
 const app = express();
 
-// Middlewares
-app.use(cors()); // Permitir peticiones desde el frontend
+app.use(cors());
 app.use(express.json());
 
-// Rutas
+// Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/lavadoras', lavadoraRoutes);
-app.use('/api/secadoras', secadoraRoutes);
+app.use('/api/washers', washerRoutes);
+app.use('/api/dryers', dryerRoutes);
 app.use('/api/roles', roleRoutes);
-app.use('/api/usuarios', userRoutes);
-app.use('/api/sucursales', sucursalRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/branches', branchRoutes);
 
-// Ruta de prueba
+// Root route for testing
 app.get('/', (req, res) => {
-  res.json({
-    message: "¡Bienvenido a la API de Lavaseco Universal!",
-    status: "Servidor funcionando correctamente"
-  });
+  res.json({ message: 'Lavaseco Universal API is running' });
 });
 
 export default app;

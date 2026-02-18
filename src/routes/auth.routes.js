@@ -5,8 +5,6 @@ import { authenticateToken, authorizePermission } from '../middlewares/auth.midd
 const router = Router();
 
 router.post('/login', authController.login);
-
-// Registro requiere permiso específico de creación de usuarios
 router.post('/register', authenticateToken, authorizePermission('users_create'), authController.register);
 
 export default router;

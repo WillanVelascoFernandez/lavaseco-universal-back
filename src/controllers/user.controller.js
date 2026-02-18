@@ -3,69 +3,66 @@ import bcrypt from 'bcryptjs';
 
 export const getUsers = async (req, res) => {
   try {
-    const users = await prisma.usuario.findMany({
+    const users = await prisma.user.findMany({
       include: {
-        rol: true,
-        sucursales: {
-          include: { sucursal: true }
+        role: true,
+        branches: {
+          include: { branch: true }
         }
       },
       orderBy: { id: 'asc' }
     });
     
-    // Formateamos la respuesta para que sea más fácil de leer por el frontend
     const formattedUsers = users.map(user => ({
       id: user.id,
       email: user.email,
-      nombre: user.nombre,
-      activo: user.activo,
-      rol: user.rol,
-      sucursales: user.sucursales.map(s => s.sucursal)
+      name: user.name,
+      active: user.active,
+      role: user.role,
+      branches: user.branches.map(b => b.branch)
     }));
 
     res.json(formattedUsers);
   } catch (error) {
-    res.status(500).json({ message: 'Error al obtener usuarios' });
+    res.status(500).json({ message: 'Error retrieving users' });
   }
 };
 
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { email, nombre, activo, rolId, sucursalIds, password } = req.body;
+    const { email, name, active, roleId, branchIds, password } = req.body;
 
-    // Si se envía un password, lo encriptamos
     let updateData = {
       email,
-      nombre,
-      activo,
-      rolId: rolId ? parseInt(rolId) : undefined
+      name,
+      active,
+      roleId: roleId ? parseInt(roleId) : undefined
     };
 
     if (password) {
       updateData.password = await bcrypt.hash(password, 10);
     }
 
-    const updatedUser = await prisma.usuario.update({
+    const updatedUser = await prisma.user.update({
       where: { id: parseInt(id) },
       data: {
         ...updateData,
-        // Actualizar sucursales: Primero borramos las actuales y creamos las nuevas
-        sucursales: sucursalIds ? {
+        branches: branchIds ? {
           deleteMany: {},
-          create: sucursalIds.map(sid => ({ sucursalId: sid }))
+          create: branchIds.map(bid => ({ branchId: bid }))
         } : undefined
       },
       include: {
-        rol: true,
-        sucursales: { include: { sucursal: true } }
+        role: true,
+        branches: { include: { branch: true } }
       }
     });
 
     res.json(updatedUser);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error al actualizar usuario' });
+    res.status(500).json({ message: 'Error updating user' });
   }
 };
 
@@ -73,19 +70,15 @@ export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // No permitir que el admin se borre a sí mismo
     if (parseInt(id) === req.user.id) {
-      return res.status(400).json({ message: 'No puedes eliminar tu propio usuario.' });
+      return res.status(400).json({ message: 'You cannot delete your own user.' });
     }
 
-    // Primero borramos sus relaciones con sucursales (por la integridad referencial)
-    await prisma.usuarioSucursal.deleteMany({ where: { usuarioId: parseInt(id) } });
+    await prisma.userBranch.deleteMany({ where: { userId: parseInt(id) } });
+    await prisma.user.delete({ where: { id: parseInt(id) } });
     
-    // Luego borramos el usuario
-    await prisma.usuario.delete({ where: { id: parseInt(id) } });
-    
-    res.json({ message: 'Usuario eliminado con éxito.' });
+    res.json({ message: 'User deleted successfully.' });
   } catch (error) {
-    res.status(500).json({ message: 'Error al eliminar usuario' });
+    res.status(500).json({ message: 'Error deleting user' });
   }
 };

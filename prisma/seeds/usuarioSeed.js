@@ -1,23 +1,23 @@
 import bcrypt from 'bcryptjs';
 
-export async function seedUsuarios(prisma, roles, sucursales) {
-  console.log('  └─ Seeding Usuarios...');
+export async function seedUsers(prisma, roles, branches) {
+  console.log('  └─ Seeding Users...');
   
   const hashedPassword = await bcrypt.hash('admin123', 10);
   
-  const admin = await prisma.usuario.upsert({
+  const admin = await prisma.user.upsert({
     where: { email: 'admin@lavaseco.com' },
     update: {
-      rolId: roles.admin.id
+      roleId: roles.admin.id
     },
     create: {
       email: 'admin@lavaseco.com',
       password: hashedPassword,
-      nombre: 'Administrador Sistema',
-      rolId: roles.admin.id,
-      sucursales: {
+      name: 'System Administrator',
+      roleId: roles.admin.id,
+      branches: {
         create: {
-          sucursalId: sucursales.principal.id
+          branchId: branches.mainBranch.id
         }
       }
     }

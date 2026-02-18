@@ -4,44 +4,44 @@ import prisma from '../lib/prisma.js';
 
 export const register = async (req, res) => {
   try {
-    const { email, password, nombre, rolId, sucursalIds } = req.body;
+    const { email, password, name, roleId, branchIds } = req.body;
 
-    const userExists = await prisma.usuario.findUnique({ where: { email } });
+    const userExists = await prisma.user.findUnique({ where: { email } });
     if (userExists) {
-      return res.status(400).json({ message: 'El correo ya está registrado' });
+      return res.status(400).json({ message: 'Email already registered' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = await prisma.usuario.create({
+    const newUser = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
-        nombre,
-        rolId: rolId || 2,
-        sucursales: {
-          create: sucursalIds ? sucursalIds.map(id => ({ sucursalId: id })) : []
+        name,
+        roleId: roleId || 2,
+        branches: {
+          create: branchIds ? branchIds.map(id => ({ branchId: id })) : []
         }
       },
       include: {
-        rol: true,
-        sucursales: { include: { sucursal: true } }
+        role: true,
+        branches: { include: { branch: true } }
       }
     });
 
     res.status(201).json({
-      message: 'Usuario creado con éxito',
+      message: 'User created successfully',
       user: {
         id: newUser.id,
         email: newUser.email,
-        nombre: newUser.nombre,
-        rol: newUser.rol.nombre,
-        sucursales: newUser.sucursales.map(s => s.sucursal.nombre)
+        name: newUser.name,
+        role: newUser.role.name,
+        branches: newUser.branches.map(b => b.branch.name)
       }
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error al registrar usuario' });
+    res.status(500).json({ message: 'Error registering user' });
   }
 };
 
@@ -49,50 +49,50 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await prisma.usuario.findUnique({
+    const user = await prisma.user.findUnique({
       where: { email },
       include: {
-        rol: true,
-        sucursales: {
+        role: true,
+        branches: {
           include: {
-            sucursal: true
+            branch: true
           }
         }
       }
     });
 
     if (!user) {
-      return res.status(400).json({ message: 'Credenciales inválidas' });
+      return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(400).json({ message: 'Credenciales inválidas' });
+      return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     const token = jwt.sign(
-      { id: user.id, rol: user.rol.nombre },
+      { id: user.id, role: user.role.name },
       process.env.JWT_SECRET || 'secret_key_123',
       { expiresIn: '24h' }
     );
 
     res.json({
-      message: 'Login exitoso',
+      message: 'Login successful',
       token,
       user: {
         id: user.id,
-        nombre: user.nombre,
+        name: user.name,
         email: user.email,
-        rol: user.rol.nombre,
-        permisos: user.rol.permisos,
-        sucursales: user.sucursales.map(s => ({
-          id: s.sucursal.id,
-          nombre: s.sucursal.nombre
+        role: user.role.name,
+        permissions: user.role.permissions,
+        branches: user.branches.map(b => ({
+          id: b.branch.id,
+          name: b.branch.name
         }))
       }
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error en el login' });
+    res.status(500).json({ message: 'Login error' });
   }
 };

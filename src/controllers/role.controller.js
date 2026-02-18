@@ -1,75 +1,69 @@
 import prisma from '../lib/prisma.js';
 
-// Listar todos los roles
 export const getRoles = async (req, res) => {
   try {
-    const roles = await prisma.rol.findMany({
+    const roles = await prisma.role.findMany({
       include: {
-        _count: { select: { usuarios: true } }
+        _count: { select: { users: true } }
       }
     });
     res.json(roles);
   } catch (error) {
-    res.status(500).json({ message: 'Error al obtener roles' });
+    res.status(500).json({ message: 'Error retrieving roles' });
   }
 };
 
-// Crear un nuevo rol
 export const createRole = async (req, res) => {
   try {
-    const { nombre, permisos } = req.body;
-    const nuevoRol = await prisma.rol.create({
+    const { name, permissions } = req.body;
+    const newRole = await prisma.role.create({
       data: {
-        nombre: nombre.toUpperCase(),
-        permisos: permisos || {}
+        name: name.toUpperCase(),
+        permissions: permissions || {}
       }
     });
-    res.status(201).json(nuevoRol);
+    res.status(201).json(newRole);
   } catch (error) {
-    res.status(500).json({ message: 'Error al crear el rol. El nombre podría estar duplicado.' });
+    res.status(500).json({ message: 'Error creating role. Name might be duplicated.' });
   }
 };
 
-// Actualizar un rol (incluyendo sus permisos)
 export const updateRole = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, permisos } = req.body;
+    const { name, permissions } = req.body;
 
-    // Evitar editar roles protegidos por el sistema
-    const rol = await prisma.rol.findUnique({ where: { id: parseInt(id) } });
-    if (rol.isProtected) {
-      return res.status(400).json({ message: 'No se puede editar un rol protegido por el sistema.' });
+    const role = await prisma.role.findUnique({ where: { id: parseInt(id) } });
+    if (role.isProtected) {
+      return res.status(400).json({ message: 'Cannot edit a system-protected role.' });
     }
 
-    const rolActualizado = await prisma.rol.update({
+    const updatedRole = await prisma.role.update({
       where: { id: parseInt(id) },
       data: {
-        nombre: nombre ? nombre.toUpperCase() : undefined,
-        permisos: permisos // Aquí es donde el admin cambia los true/false
+        name: name ? name.toUpperCase() : undefined,
+        permissions: permissions
       }
     });
 
-    res.json(rolActualizado);
+    res.json(updatedRole);
   } catch (error) {
-    res.status(500).json({ message: 'Error al actualizar el rol.' });
+    res.status(500).json({ message: 'Error updating role.' });
   }
 };
 
-// Borrar un rol
 export const deleteRole = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Evitar borrar roles protegidos por el sistema
-    const rol = await prisma.rol.findUnique({ where: { id: parseInt(id) } });
-    if (rol.isProtected) {
-      return res.status(400).json({ message: 'No se puede eliminar un rol protegido por el sistema.' });
+    const role = await prisma.role.findUnique({ where: { id: parseInt(id) } });
+    if (role.isProtected) {
+      return res.status(400).json({ message: 'Cannot delete a system-protected role.' });
     }
 
-    await prisma.rol.delete({ where: { id: parseInt(id) } });
-    res.json({ message: 'Rol eliminado con éxito.' });
+    await prisma.role.delete({ where: { id: parseInt(id) } });
+    res.json({ message: 'Role deleted successfully.' });
   } catch (error) {
-    res.status(400).json({ message: 'No se puede eliminar un rol que tiene usuarios asignados.' });
+    res.status(400).json({ message: 'Cannot delete a role that has assigned users.' });
   }
 };

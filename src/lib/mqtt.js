@@ -15,43 +15,43 @@ const options = {
 
 const client = mqtt.connect(`mqtt://${options.host}`, options);
 
-const WASHER_TOPIC = 'lavadoras/+/uso';
-const DRYER_TOPIC = 'secadoras/+/uso';
+const WASHER_TOPIC = 'washers/+/usage';
+const DRYER_TOPIC = 'dryers/+/usage';
 
 client.on('connect', () => {
-  console.log('✅ Conectado al servidor MQTT:', process.env.MQTT_HOST);
+  console.log('✅ Connected to MQTT Broker:', process.env.MQTT_HOST);
   client.subscribe([WASHER_TOPIC, DRYER_TOPIC], (err) => {
-    if (!err) console.log('📡 Suscrito a los tópicos de máquinas');
+    if (!err) console.log('📡 Subscribed to machine topics');
   });
 });
 
 client.on('message', async (topic, message) => {
   try {
     const topicParts = topic.split('/');
-    const type = topicParts[0]; // lavadoras o secadoras
+    const type = topicParts[0]; // washers or dryers
     const id = parseInt(topicParts[1]);
-    const action = topicParts[2]; // uso
+    const action = topicParts[2]; // usage
 
-    if (action === 'uso') {
+    if (action === 'usage') {
       const data = JSON.parse(message.toString());
 
-      if (type === 'lavadoras') {
-        const reg = await prisma.registroLavadora.create({
-          data: { lavadoraId: id, tipoLavado: data.tipoLavado || 'Normal' }
+      if (type === 'washers') {
+        const record = await prisma.washerLog.create({
+          data: { washerId: id, washType: data.washType || 'Normal' }
         });
-        console.log('💾 Lavadora registrada:', reg.id);
-        publishMessage(`lavadoras/${id}/confirmacion`, { status: 'OK', registroId: reg.id });
+        console.log('💾 Washer usage recorded:', record.id);
+        publishMessage(`washers/${id}/confirmation`, { status: 'OK', recordId: record.id });
       } 
-      else if (type === 'secadoras') {
-        const reg = await prisma.registroSecadora.create({
-          data: { secadoraId: id, tipoSecado: data.tipoSecado || 'Normal' }
+      else if (type === 'dryers') {
+        const record = await prisma.dryerLog.create({
+          data: { dryerId: id, dryType: data.dryType || 'Normal' }
         });
-        console.log('💾 Secadora registrada:', reg.id);
-        publishMessage(`secadoras/${id}/confirmacion`, { status: 'OK', registroId: reg.id });
+        console.log('💾 Dryer usage recorded:', record.id);
+        publishMessage(`dryers/${id}/confirmation`, { status: 'OK', recordId: record.id });
       }
     }
   } catch (error) {
-    console.error('❌ Error MQTT:', error.message);
+    console.error('❌ MQTT Error:', error.message);
   }
 });
 

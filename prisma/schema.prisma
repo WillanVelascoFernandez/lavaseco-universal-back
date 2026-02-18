@@ -10,133 +10,133 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- SEGURIDAD Y ACCESO ---
+// --- SECURITY AND ACCESS ---
 
-model Rol {
-  id          Int       @id @default(autoincrement())
-  nombre      String    @unique // ADMIN, SUPERVISOR, OPERADOR
-  permisos    Json?     // Ej: { "view_reports": true, "manage_users": true }
-  isProtected Boolean   @default(false) @map("is_protected")
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // ADMIN, SUPERVISOR, OPERATOR
+  permissions Json?    // e.g.: { "view_reports": true, "manage_users": true }
+  isProtected Boolean  @default(false) @map("is_protected")
   
-  usuarios    Usuario[]
+  users       User[]
 
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("roles")
 }
 
-model Usuario {
+model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
-  nombre    String?
-  activo    Boolean  @default(true)
+  name      String?
+  active    Boolean  @default(true) @map("is_active")
   
-  // Relación con Rol
-  rolId     Int      @map("rol_id")
-  rol       Rol      @relation(fields: [rolId], references: [id])
+  // Role relation
+  roleId    Int      @map("role_id")
+  role      Role     @relation(fields: [roleId], references: [id])
   
-  // Un usuario puede pertenecer a múltiples sucursales
-  sucursales UsuarioSucursal[]
+  // User branch relation (Many-to-Many)
+  branches  UserBranch[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
-  @@map("usuarios")
+  @@map("users")
 }
 
-// --- ESTRUCTURA FÍSICA ---
+// --- PHYSICAL STRUCTURE ---
 
-model Sucursal {
+model Branch {
   id          Int       @id @default(autoincrement())
-  nombre      String    @unique
-  direccion   String?
-  telefono    String?
+  name        String    @unique
+  address     String?
+  phone       String?
   
-  // Máquinas de esta sucursal
-  lavadoras   Lavadora[]
-  secadoras   Secadora[]
+  // Machines in this branch
+  washers     Washer[]
+  dryers      Dryer[]
   
-  // Usuarios asignados
-  usuarios    UsuarioSucursal[]
+  // Assigned users
+  users       UserBranch[]
 
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
 
-  @@map("sucursales")
+  @@map("branches")
 }
 
-// Tabla Pivot para Usuarios y Sucursales (Muchos a Muchos)
-model UsuarioSucursal {
-  usuarioId   Int       @map("usuario_id")
-  sucursalId  Int       @map("sucursal_id")
+// Pivot table (Many-to-Many Bridge)
+model UserBranch {
+  userId      Int      @map("user_id")
+  branchId    Int      @map("branch_id")
   
-  usuario     Usuario   @relation(fields: [usuarioId], references: [id])
-  sucursal    Sucursal  @relation(fields: [sucursalId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+  branch      Branch   @relation(fields: [branchId], references: [id])
 
-  @@id([usuarioId, sucursalId])
-  @@map("usuarios_sucursales")
+  @@id([userId, branchId])
+  @@map("users_branches")
 }
 
-// --- MÁQUINAS ---
+// --- MACHINES ---
 
-model Lavadora {
+model Washer {
   id          Int      @id @default(autoincrement())
-  isEnable    Boolean  @default(true) @map("is_enable")
+  isEnabled   Boolean  @default(true) @map("is_enabled")
   
-  // Relación con Sucursal
-  sucursalId  Int      @map("sucursal_id")
-  sucursal    Sucursal @relation(fields: [sucursalId], references: [id])
+  // Branch relation
+  branchId    Int      @map("branch_id")
+  branch      Branch   @relation(fields: [branchId], references: [id])
   
-  registros   RegistroLavadora[]
+  logs        WasherLog[]
 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
 
-  @@map("lavadoras")
+  @@map("washers")
 }
 
-model Secadora {
+model Dryer {
   id          Int      @id @default(autoincrement())
-  isEnable    Boolean  @default(true) @map("is_enable")
+  isEnabled   Boolean  @default(true) @map("is_enabled")
   
-  // Relación con Sucursal
-  sucursalId  Int      @map("sucursal_id")
-  sucursal    Sucursal @relation(fields: [sucursalId], references: [id])
+  // Branch relation
+  branchId    Int      @map("branch_id")
+  branch      Branch   @relation(fields: [branchId], references: [id])
   
-  registros   RegistroSecadora[]
+  logs        DryerLog[]
 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
 
-  @@map("secadoras")
+  @@map("dryers")
 }
 
-// --- REGISTROS DE USO ---
+// --- USAGE LOGS ---
 
-model RegistroLavadora {
+model WasherLog {
   id          Int      @id @default(autoincrement())
-  lavadoraId  Int      @map("id_lavadora")
-  tipoLavado  String   @map("tipo_lavado")
+  washerId    Int      @map("washer_id")
+  washType    String   @map("wash_type")
   
-  lavadora    Lavadora @relation(fields: [lavadoraId], references: [id])
+  washer      Washer   @relation(fields: [washerId], references: [id])
 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
 
-  @@map("registro_lavadoras")
+  @@map("washers_logs")
 }
 
-model RegistroSecadora {
+model DryerLog {
   id          Int      @id @default(autoincrement())
-  secadoraId  Int      @map("id_secadora")
-  tipoSecado  String   @map("tipo_secado")
+  dryerId     Int      @map("dryer_id")
+  dryType     String   @map("dry_type")
   
-  secadora    Secadora @relation(fields: [secadoraId], references: [id])
+  dryer       Dryer    @relation(fields: [dryerId], references: [id])
 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
 
-  @@map("registro_secadoras")
+  @@map("dryers_logs")
 }

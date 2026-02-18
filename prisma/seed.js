@@ -1,24 +1,24 @@
 import { PrismaClient } from '@prisma/client';
 import { seedRoles } from './seeds/roleSeed.js';
-import { seedSucursales } from './seeds/sucursalSeed.js';
-import { seedUsuarios } from './seeds/usuarioSeed.js';
+import { seedBranches } from './seeds/sucursalSeed.js';
+import { seedUsers } from './seeds/usuarioSeed.js';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🚀 Iniciando Master Seed...');
+  console.log('🚀 Starting Master Seed...');
 
   try {
-    // 1. Ejecutar cada módulo en orden (algunos dependen de otros)
+    // 1. Run each module in order
     const roles = await seedRoles(prisma);
-    const sucursales = await seedSucursales(prisma);
+    const branches = await seedBranches(prisma);
     
-    // El seed de usuarios necesita los roles y sucursales creados arriba
-    await seedUsuarios(prisma, roles, sucursales);
+    // User seed needs the roles and branches created above
+    await seedUsers(prisma, roles, branches);
 
-    console.log('✅ Master Seed finalizado con éxito.');
+    console.log('✅ Master Seed completed successfully.');
   } catch (error) {
-    console.error('❌ Error durante el Master Seed:', error);
+    console.error('❌ Error during Master Seed:', error);
     process.exit(1);
   }
 }

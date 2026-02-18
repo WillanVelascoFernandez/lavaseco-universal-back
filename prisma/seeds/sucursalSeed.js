@@ -1,15 +1,15 @@
-export async function seedSucursales(prisma) {
-  console.log('  └─ Seeding Sucursales...');
+export async function seedBranches(prisma) {
+  console.log('  └─ Seeding Branches...');
   
-  const principal = await prisma.sucursal.upsert({
-    where: { nombre: 'Sucursal Central' },
+  const mainBranch = await prisma.branch.upsert({
+    where: { name: 'Main Branch' },
     update: {},
     create: {
-      nombre: 'Sucursal Central',
-      direccion: 'Calle Principal #123',
-      telefono: '123456789'
+      name: 'Main Branch',
+      address: 'Main Street #123',
+      phone: '123456789'
     }
   });
 
-  return { principal };
+  return { mainBranch };
 }
