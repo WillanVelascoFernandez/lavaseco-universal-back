@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { seedRoles } from './seeds/roleSeed.js';
 import { seedBranches } from './seeds/sucursalSeed.js';
 import { seedUsers } from './seeds/usuarioSeed.js';
+import { seedMachines } from './seeds/machineSeed.js';
 
 const prisma = new PrismaClient();
 
@@ -15,6 +16,9 @@ async function main() {
     
     // User seed needs the roles and branches created above
     await seedUsers(prisma, roles, branches);
+
+    // Seed machines (washers and dryers)
+    await seedMachines(prisma, branches);
 
     console.log('✅ Master Seed completed successfully.');
   } catch (error) {

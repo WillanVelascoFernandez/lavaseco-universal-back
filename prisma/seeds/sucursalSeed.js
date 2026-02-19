@@ -1,15 +1,21 @@
 export async function seedBranches(prisma) {
   console.log('  └─ Seeding Branches...');
   
-  const mainBranch = await prisma.branch.upsert({
-    where: { name: 'Main Branch' },
-    update: {},
-    create: {
-      name: 'Main Branch',
-      address: 'Main Street #123',
-      phone: '123456789'
-    }
-  });
+  const branchesData = [
+    { name: 'Sucursal Central', address: 'Calle Principal #123', phone: '222111333' },
+    { name: 'Sucursal Norte', address: 'Avenida Libertad #456', phone: '222444555' },
+    { name: 'Sucursal Sur', address: 'Calle 10 #789', phone: '222666777' }
+  ];
 
-  return { mainBranch };
+  const branches = [];
+  for (const data of branchesData) {
+    const branch = await prisma.branch.upsert({
+      where: { name: data.name },
+      update: {},
+      create: data
+    });
+    branches.push(branch);
+  }
+
+  return branches;
 }

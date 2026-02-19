@@ -16,12 +16,30 @@ export async function seedUsers(prisma, roles, branches) {
       name: 'System Administrator',
       roleId: roles.admin.id,
       branches: {
+        create: branches.map(b => ({
+          branchId: b.id
+        }))
+      }
+    }
+  });
+
+  const operator = await prisma.user.upsert({
+    where: { email: 'operator@lavaseco.com' },
+    update: {
+      roleId: roles.operator.id
+    },
+    create: {
+      email: 'operator@lavaseco.com',
+      password: hashedPassword,
+      name: 'Branch Operator',
+      roleId: roles.operator.id,
+      branches: {
         create: {
-          branchId: branches.mainBranch.id
+          branchId: branches[0].id
         }
       }
     }
   });
 
-  return { admin };
+  return { admin, operator };
 }
