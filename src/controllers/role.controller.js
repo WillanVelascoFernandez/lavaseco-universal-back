@@ -5,7 +5,8 @@ export const getRoles = async (req, res) => {
     const roles = await prisma.role.findMany({
       include: {
         _count: { select: { users: true } }
-      }
+      },
+      orderBy: { id: 'asc' }
     });
     res.json(roles);
   } catch (error) {

@@ -12,7 +12,8 @@ export const getBranches = async (req, res) => {
         _count: {
           select: { washers: true, dryers: true, users: true }
         }
-      }
+      },
+      orderBy: { id: 'asc' }
     });
     res.json(branches);
   } catch (error) {
