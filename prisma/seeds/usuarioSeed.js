@@ -5,6 +5,24 @@ export async function seedUsers(prisma, roles, branches) {
   
   const hashedPassword = await bcrypt.hash('admin123', 10);
   
+  const superAdmin = await prisma.user.upsert({
+    where: { email: 'superadmin@lavaseco.com' },
+    update: {
+      roleId: roles.superAdmin.id
+    },
+    create: {
+      email: 'superadmin@lavaseco.com',
+      password: hashedPassword,
+      name: 'Super Admin',
+      roleId: roles.superAdmin.id,
+      branches: {
+        create: branches.map(b => ({
+          branchId: b.id
+        }))
+      }
+    }
+  });
+
   const admin = await prisma.user.upsert({
     where: { email: 'admin@lavaseco.com' },
     update: {
@@ -41,5 +59,5 @@ export async function seedUsers(prisma, roles, branches) {
     }
   });
 
-  return { admin, operator };
+  return { superAdmin, admin, operator };
 }

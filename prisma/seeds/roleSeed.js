@@ -1,7 +1,7 @@
 export async function seedRoles(prisma) {
   console.log('  └─ Seeding Roles...');
   
-  const adminPermissions = {
+  const superAdminPermissions = {
     // Users & Roles
     users_view: true, users_create: true, users_edit: true, users_delete: true,
     roles_view: true, roles_create: true, roles_edit: true, roles_delete: true,
@@ -15,16 +15,31 @@ export async function seedRoles(prisma) {
     reports_view: true
   };
 
+  const adminPermissions = { ...superAdminPermissions };
+
+  const superAdmin = await prisma.role.upsert({
+    where: { name: 'SUPERADMIN' },
+    update: { 
+      permissions: superAdminPermissions,
+      isProtected: true
+    },
+    create: {
+      name: 'SUPERADMIN',
+      permissions: superAdminPermissions,
+      isProtected: true
+    }
+  });
+
   const admin = await prisma.role.upsert({
     where: { name: 'ADMIN' },
     update: { 
       permissions: adminPermissions,
-      isProtected: true
+      isProtected: false
     },
     create: {
       name: 'ADMIN',
       permissions: adminPermissions,
-      isProtected: true
+      isProtected: false
     }
   });
 
@@ -53,5 +68,5 @@ export async function seedRoles(prisma) {
     }
   });
 
-  return { admin, operator };
+  return { superAdmin, admin, operator };
 }
