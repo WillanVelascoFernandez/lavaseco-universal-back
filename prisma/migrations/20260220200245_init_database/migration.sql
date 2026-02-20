@@ -53,6 +53,7 @@ CREATE TABLE "users" (
     "name" TEXT,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "role_id" INTEGER NOT NULL,
+    "last_active" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

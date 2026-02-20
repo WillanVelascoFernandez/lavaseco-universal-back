@@ -28,6 +28,12 @@ export const authenticateToken = async (req, res, next) => {
       return res.status(403).json({ message: 'User not found or inactive.' });
     }
 
+    // Update last activity in the background
+    prisma.user.update({
+      where: { id: user.id },
+      data: { lastActive: new Date() }
+    }).catch(err => console.error('Error updating last activity:', err));
+
     // Attach the full user to the request
     req.user = user;
     next();

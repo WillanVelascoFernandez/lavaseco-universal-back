@@ -84,6 +84,12 @@ export const login = async (req, res) => {
       { expiresIn: '24h' }
     );
 
+    // Update last activity on successful login
+    prisma.user.update({
+      where: { id: user.id },
+      data: { lastActive: new Date() }
+    }).catch(err => console.error('Error updating last activity on login:', err));
+
     res.json({
       message: 'Login successful',
       token,
