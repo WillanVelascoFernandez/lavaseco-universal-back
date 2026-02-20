@@ -3,6 +3,7 @@ import { seedRoles } from './seeds/roleSeed.js';
 import { seedBranches } from './seeds/sucursalSeed.js';
 import { seedUsers } from './seeds/usuarioSeed.js';
 import { seedMachines } from './seeds/machineSeed.js';
+import { seedLogs } from './seeds/logSeed.js';
 
 const prisma = new PrismaClient();
 
@@ -19,6 +20,9 @@ async function main() {
 
     // Seed machines (washers and dryers)
     await seedMachines(prisma, branches);
+
+    // Seed usage logs
+    await seedLogs(prisma);
 
     console.log('✅ Master Seed completed successfully.');
   } catch (error) {
