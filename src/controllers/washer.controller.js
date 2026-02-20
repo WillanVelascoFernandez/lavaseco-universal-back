@@ -87,17 +87,34 @@ export const toggleWasher = async (req, res) => {
 export const getWasherHistory = async (req, res) => {
   try {
     const { id } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
 
-    const logs = await prisma.washerLog.findMany({
-      where: { washerId: parseInt(id) },
-      include: {
-        user: { select: { name: true } }
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 50
+    const [logs, total] = await Promise.all([
+      prisma.washerLog.findMany({
+        where: { washerId: parseInt(id) },
+        include: {
+          user: { select: { name: true } }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit
+      }),
+      prisma.washerLog.count({
+        where: { washerId: parseInt(id) }
+      })
+    ]);
+
+    res.json({
+      logs,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        currentPage: page,
+        limit
+      }
     });
-
-    res.json(logs);
   } catch (error) {
     console.error('Error in getWasherHistory:', error);
     res.status(500).json({ message: 'Error retrieving washer history' });

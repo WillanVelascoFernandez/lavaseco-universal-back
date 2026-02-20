@@ -81,17 +81,34 @@ export const toggleDryer = async (req, res) => {
 export const getDryerHistory = async (req, res) => {
   try {
     const { id } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
 
-    const logs = await prisma.dryerLog.findMany({
-      where: { dryerId: parseInt(id) },
-      include: {
-        user: { select: { name: true } }
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 50
+    const [logs, total] = await Promise.all([
+      prisma.dryerLog.findMany({
+        where: { dryerId: parseInt(id) },
+        include: {
+          user: { select: { name: true } }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit
+      }),
+      prisma.dryerLog.count({
+        where: { dryerId: parseInt(id) }
+      })
+    ]);
+
+    res.json({
+      logs,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        currentPage: page,
+        limit
+      }
     });
-
-    res.json(logs);
   } catch (error) {
     console.error('Error in getDryerHistory:', error);
     res.status(500).json({ message: 'Error retrieving dryer history' });
