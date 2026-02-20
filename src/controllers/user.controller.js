@@ -3,7 +3,16 @@ import bcrypt from 'bcryptjs';
 
 export const getUsers = async (req, res) => {
   try {
+    const assignedBranchIds = req.user.branches.map(b => b.branchId);
+
     const users = await prisma.user.findMany({
+      where: {
+        branches: {
+          some: {
+            branchId: { in: assignedBranchIds }
+          }
+        }
+      },
       include: {
         role: true,
         branches: {

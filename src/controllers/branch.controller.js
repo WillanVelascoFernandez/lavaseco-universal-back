@@ -2,7 +2,12 @@ import prisma from '../lib/prisma.js';
 
 export const getBranches = async (req, res) => {
   try {
+    const branchIds = req.user.branches.map(b => b.branchId);
+    
     const branches = await prisma.branch.findMany({
+      where: {
+        id: { in: branchIds }
+      },
       include: {
         _count: {
           select: { washers: true, dryers: true, users: true }
@@ -11,6 +16,7 @@ export const getBranches = async (req, res) => {
     });
     res.json(branches);
   } catch (error) {
+    console.error('Error in getBranches:', error);
     res.status(500).json({ message: 'Error retrieving branches' });
   }
 };

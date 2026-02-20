@@ -3,12 +3,18 @@ import { publishMessage } from '../lib/mqtt.js';
 
 export const getWashers = async (req, res) => {
   try {
+    const branchIds = req.user.branches.map(b => b.branchId);
+
     const washers = await prisma.washer.findMany({
+      where: {
+        branchId: { in: branchIds }
+      },
       include: { branch: true },
       orderBy: { id: 'asc' }
     });
     res.json(washers);
   } catch (error) {
+    console.error('Error in getWashers:', error);
     res.status(500).json({ message: 'Error retrieving washers' });
   }
 };
@@ -43,6 +49,12 @@ export const toggleWasher = async (req, res) => {
 
     if (!washer) {
       return res.status(404).json({ message: 'Washer not found' });
+    }
+
+    // Ownership check
+    const branchIds = req.user.branches.map(b => b.branchId);
+    if (!branchIds.includes(washer.branchId)) {
+      return res.status(403).json({ message: 'You do not have access to this washer.' });
     }
 
     const updatedWasher = await prisma.washer.update({
