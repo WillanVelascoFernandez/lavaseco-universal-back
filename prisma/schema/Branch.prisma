@@ -1,18 +1,20 @@
 model Branch {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
   address     String?
   phone       String?
-  
-  // Machines in this branch
-  washers     Washer[]
-  dryers      Dryer[]
-  
-  // Assigned users
-  users       UserBranch[]
+  washerPrice Float   @default(0) @map("washer_price")
+  dryerPrice  Float   @default(0) @map("dryer_price")
 
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+  // Machines in this branch
+  washers Washer[]
+  dryers  Dryer[]
+
+  // Assigned users
+  users UserBranch[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("branches")
 }
