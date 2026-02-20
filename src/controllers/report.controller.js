@@ -6,10 +6,11 @@ import { startOfDay, endOfDay, subDays } from 'date-fns';
  */
 export const getDashboardStats = async (req, res) => {
   try {
+    const isSuperAdmin = req.user.role.isProtected;
     const branchIds = req.user.branches.map(b => b.branchId);
 
-    const whereBranch = { id: { in: branchIds } };
-    const whereMachine = { branchId: { in: branchIds } };
+    const whereBranch = isSuperAdmin ? {} : { id: { in: branchIds } };
+    const whereMachine = isSuperAdmin ? {} : { branchId: { in: branchIds } };
 
     const totalWashers = await prisma.washer.count({ where: whereMachine });
     const activeWashers = await prisma.washer.count({ 
@@ -23,7 +24,7 @@ export const getDashboardStats = async (req, res) => {
 
     const totalBranches = await prisma.branch.count({ where: whereBranch });
     const totalUsers = await prisma.user.count({
-      where: {
+      where: isSuperAdmin ? {} : {
         branches: { some: { branchId: { in: branchIds } } }
       }
     });
@@ -72,13 +73,14 @@ export const getDashboardStats = async (req, res) => {
 export const getBranchReports = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
+    const isSuperAdmin = req.user.role.isProtected;
     const assignedBranchIds = req.user.branches.map(b => b.branchId);
 
     const dateFilter = {};
     if (startDate) dateFilter.gte = new Date(startDate);
     if (endDate) dateFilter.lte = new Date(endDate);
 
-    const where = { id: { in: assignedBranchIds } };
+    const where = isSuperAdmin ? {} : { id: { in: assignedBranchIds } };
 
     const branches = await prisma.branch.findMany({
       where,
@@ -135,10 +137,11 @@ export const getBranchReports = async (req, res) => {
  */
 export const getTypeStats = async (req, res) => {
   try {
+    const isSuperAdmin = req.user.role.isProtected;
     const branchIds = req.user.branches.map(b => b.branchId);
     
-    const whereWasher = { washer: { branchId: { in: branchIds } } };
-    const whereDryer = { dryer: { branchId: { in: branchIds } } };
+    const whereWasher = isSuperAdmin ? {} : { washer: { branchId: { in: branchIds } } };
+    const whereDryer = isSuperAdmin ? {} : { dryer: { branchId: { in: branchIds } } };
 
     // Grouping by washType
     const washTypes = await prisma.washerLog.groupBy({

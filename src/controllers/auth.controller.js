@@ -13,12 +13,20 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Security check: Do not allow creating users with protected roles (like SUPERADMIN)
+    if (roleId) {
+      const targetRole = await prisma.role.findUnique({ where: { id: parseInt(roleId) } });
+      if (targetRole?.isProtected) {
+        return res.status(403).json({ message: 'Cannot create additional system-protected users.' });
+      }
+    }
+
     const newUser = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
         name,
-        roleId: roleId || 2,
+        roleId: roleId ? parseInt(roleId) : 2,
         branches: {
           create: branchIds ? branchIds.map(id => ({ branchId: id })) : []
         }
@@ -83,7 +91,10 @@ export const login = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role.name,
+        role: {
+          name: user.role.name,
+          isProtected: user.role.isProtected
+        },
         permissions: user.role.permissions,
         branches: user.branches.map(b => ({
           id: b.branch.id,

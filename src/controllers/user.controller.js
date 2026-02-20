@@ -3,10 +3,11 @@ import bcrypt from 'bcryptjs';
 
 export const getUsers = async (req, res) => {
   try {
+    const isSuperAdmin = req.user.role.isProtected;
     const assignedBranchIds = req.user.branches.map(b => b.branchId);
 
     const users = await prisma.user.findMany({
-      where: {
+      where: isSuperAdmin ? {} : {
         branches: {
           some: {
             branchId: { in: assignedBranchIds }
@@ -42,11 +43,22 @@ export const updateUser = async (req, res) => {
     const { id } = req.params;
     const { email, name, active, roleId, branchIds, password } = req.body;
 
+    const userToUpdate = await prisma.user.findUnique({
+      where: { id: parseInt(id) },
+      include: { role: true }
+    });
+
+    if (!userToUpdate) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const isTargetProtected = userToUpdate.role.isProtected;
+
     let updateData = {
       email,
       name,
-      active,
-      roleId: roleId ? parseInt(roleId) : undefined
+      active: isTargetProtected ? userToUpdate.active : active,
+      roleId: (roleId && !isTargetProtected) ? parseInt(roleId) : userToUpdate.roleId
     };
 
     if (password) {
@@ -57,7 +69,7 @@ export const updateUser = async (req, res) => {
       where: { id: parseInt(id) },
       data: {
         ...updateData,
-        branches: branchIds ? {
+        branches: (branchIds && !isTargetProtected) ? {
           deleteMany: {},
           create: branchIds.map(bid => ({ branchId: bid }))
         } : undefined
@@ -81,6 +93,19 @@ export const deleteUser = async (req, res) => {
 
     if (parseInt(id) === req.user.id) {
       return res.status(400).json({ message: 'You cannot delete your own user.' });
+    }
+
+    const userToDelete = await prisma.user.findUnique({
+      where: { id: parseInt(id) },
+      include: { role: true }
+    });
+
+    if (!userToDelete) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (userToDelete.role.isProtected) {
+      return res.status(403).json({ message: 'Cannot delete a system-protected user.' });
     }
 
     await prisma.userBranch.deleteMany({ where: { userId: parseInt(id) } });

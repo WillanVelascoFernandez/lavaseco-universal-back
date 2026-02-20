@@ -3,10 +3,11 @@ import { publishMessage } from '../lib/mqtt.js';
 
 export const getWashers = async (req, res) => {
   try {
+    const isSuperAdmin = req.user.role.isProtected;
     const branchIds = req.user.branches.map(b => b.branchId);
 
     const washers = await prisma.washer.findMany({
-      where: {
+      where: isSuperAdmin ? {} : {
         branchId: { in: branchIds }
       },
       include: { branch: true },
@@ -52,8 +53,9 @@ export const toggleWasher = async (req, res) => {
     }
 
     // Ownership check
+    const isSuperAdmin = req.user.role.isProtected;
     const branchIds = req.user.branches.map(b => b.branchId);
-    if (!branchIds.includes(washer.branchId)) {
+    if (!isSuperAdmin && !branchIds.includes(washer.branchId)) {
       return res.status(403).json({ message: 'You do not have access to this washer.' });
     }
 

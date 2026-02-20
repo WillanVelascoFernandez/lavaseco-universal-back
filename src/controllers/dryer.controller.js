@@ -3,10 +3,11 @@ import { publishMessage } from '../lib/mqtt.js';
 
 export const getDryers = async (req, res) => {
   try {
+    const isSuperAdmin = req.user.role.isProtected;
     const branchIds = req.user.branches.map(b => b.branchId);
 
     const dryers = await prisma.dryer.findMany({
-      where: {
+      where: isSuperAdmin ? {} : {
         branchId: { in: branchIds }
       },
       include: { branch: true },
@@ -47,8 +48,9 @@ export const toggleDryer = async (req, res) => {
     if (!dryer) return res.status(404).json({ message: 'Dryer not found' });
 
     // Ownership check
+    const isSuperAdmin = req.user.role.isProtected;
     const branchIds = req.user.branches.map(b => b.branchId);
-    if (!branchIds.includes(dryer.branchId)) {
+    if (!isSuperAdmin && !branchIds.includes(dryer.branchId)) {
       return res.status(403).json({ message: 'You do not have access to this dryer.' });
     }
 
