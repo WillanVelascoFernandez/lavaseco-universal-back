@@ -15,9 +15,17 @@ export const getWashers = async (req, res) => {
 
 export const createWasher = async (req, res) => {
   try {
-    const { branchId } = req.body;
+    const { branchId, name } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ message: 'Machine name is required' });
+    }
+
     const newWasher = await prisma.washer.create({
-      data: { branchId: parseInt(branchId) }
+      data: { 
+        branchId: parseInt(branchId),
+        name: name
+      }
     });
     res.status(201).json(newWasher);
   } catch (error) {

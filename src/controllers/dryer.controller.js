@@ -15,9 +15,17 @@ export const getDryers = async (req, res) => {
 
 export const createDryer = async (req, res) => {
   try {
-    const { branchId } = req.body;
+    const { branchId, name } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ message: 'Machine name is required' });
+    }
+
     const newDryer = await prisma.dryer.create({
-      data: { branchId: parseInt(branchId) }
+      data: { 
+        branchId: parseInt(branchId),
+        name: name
+      }
     });
     res.status(201).json(newDryer);
   } catch (error) {

@@ -1,15 +1,16 @@
 model Dryer {
-  id          Int      @id @default(autoincrement())
-  isEnabled   Boolean  @default(true) @map("is_enabled")
-  
-  // Branch relation
-  branchId    Int      @map("branch_id")
-  branch      Branch   @relation(fields: [branchId], references: [id])
-  
-  logs        DryerLog[]
+  id        Int     @id @default(autoincrement())
+  name      String  @default("Secadora")
+  isEnabled Boolean @default(false) @map("is_enabled")
 
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  // Branch relation
+  branchId Int    @map("branch_id")
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  logs DryerLog[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("dryers")
 }

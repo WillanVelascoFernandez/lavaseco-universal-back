@@ -6,6 +6,7 @@ export async function seedMachines(prisma, branches) {
     for (let i = 1; i <= 4; i++) {
       await prisma.washer.create({
         data: {
+          name: `L${i}`,
           branchId: branch.id,
           isEnabled: true
         }
@@ -16,6 +17,7 @@ export async function seedMachines(prisma, branches) {
     for (let i = 1; i <= 4; i++) {
       await prisma.dryer.create({
         data: {
+          name: `S${i}`,
           branchId: branch.id,
           isEnabled: true
         }
