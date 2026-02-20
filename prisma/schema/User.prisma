@@ -1,9 +1,9 @@
 model User {
-  id       Int     @id @default(autoincrement())
-  email    String  @unique
-  password String
-  name     String?
-  active   Boolean @default(true) @map("is_active")
+  id        Int     @id @default(autoincrement())
+  email     String  @unique
+  password  String
+  name      String?
+  isEnabled Boolean @default(true) @map("is_enabled")
 
   // Role relation
   roleId Int  @map("role_id")

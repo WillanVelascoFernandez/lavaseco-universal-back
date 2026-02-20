@@ -24,7 +24,7 @@ export const authenticateToken = async (req, res, next) => {
       }
     });
 
-    if (!user || !user.active) {
+    if (!user || !user.isEnabled) {
       return res.status(403).json({ message: 'User not found or inactive.' });
     }
 

@@ -27,7 +27,7 @@ export const getUsers = async (req, res) => {
       id: user.id,
       email: user.email,
       name: user.name,
-      active: user.active,
+      isEnabled: user.isEnabled,
       role: user.role,
       lastActive: user.lastActive,
       branches: user.branches.map(b => b.branch)
@@ -35,6 +35,7 @@ export const getUsers = async (req, res) => {
 
     res.json(formattedUsers);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Error retrieving users' });
   }
 };
@@ -42,7 +43,7 @@ export const getUsers = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { email, name, active, roleId, branchIds, password } = req.body;
+    const { email, name, isEnabled, roleId, branchIds, password } = req.body;
 
     const userToUpdate = await prisma.user.findUnique({
       where: { id: parseInt(id) },
@@ -58,7 +59,7 @@ export const updateUser = async (req, res) => {
     let updateData = {
       email,
       name,
-      active: isTargetProtected ? userToUpdate.active : active,
+      isEnabled: isTargetProtected ? userToUpdate.isEnabled : isEnabled,
       roleId: (roleId && !isTargetProtected) ? parseInt(roleId) : userToUpdate.roleId
     };
 

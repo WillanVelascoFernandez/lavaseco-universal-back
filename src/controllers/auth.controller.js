@@ -78,6 +78,10 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
+    if (!user.isEnabled) {
+      return res.status(403).json({ message: 'Su cuenta está desactivada. Por favor, contacte al administrador.' });
+    }
+
     const token = jwt.sign(
       { id: user.id, role: user.role.name },
       process.env.JWT_SECRET || 'secret_key_123',
