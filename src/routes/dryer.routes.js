@@ -8,6 +8,7 @@ router.use(authenticateToken);
 
 router.get('/', authorizePermission('dryers_view'), dryerController.getDryers);
 router.post('/', authorizePermission('dryers_create'), dryerController.createDryer);
+router.get('/:id/history', authorizePermission('dryers_view'), dryerController.getDryerHistory);
 router.post('/:id/toggle', authorizePermission('dryers_toggle'), dryerController.toggleDryer);
 
 export default router;

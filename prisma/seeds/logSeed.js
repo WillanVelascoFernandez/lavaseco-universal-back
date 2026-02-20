@@ -3,6 +3,10 @@ import { subDays, startOfDay, addMinutes, isAfter } from 'date-fns';
 export async function seedLogs(prisma) {
   console.log('  └─ Seeding Usage Logs (Simulating 30 days)...');
 
+  // Clear existing logs
+  await prisma.washerLog.deleteMany();
+  await prisma.dryerLog.deleteMany();
+
   const washers = await prisma.washer.findMany();
   const dryers = await prisma.dryer.findMany();
 

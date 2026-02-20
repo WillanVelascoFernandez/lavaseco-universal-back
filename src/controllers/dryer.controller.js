@@ -10,7 +10,12 @@ export const getDryers = async (req, res) => {
       where: isSuperAdmin ? {} : {
         branchId: { in: branchIds }
       },
-      include: { branch: true },
+      include: { 
+        branch: true,
+        _count: {
+          select: { logs: true }
+        }
+      },
       orderBy: { id: 'asc' }
     });
     res.json(dryers);
@@ -71,5 +76,21 @@ export const toggleDryer = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Error changing dryer state' });
+  }
+};
+export const getDryerHistory = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const logs = await prisma.dryerLog.findMany({
+      where: { dryerId: parseInt(id) },
+      orderBy: { createdAt: 'desc' },
+      take: 50
+    });
+
+    res.json(logs);
+  } catch (error) {
+    console.error('Error in getDryerHistory:', error);
+    res.status(500).json({ message: 'Error retrieving dryer history' });
   }
 };

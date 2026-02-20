@@ -1,12 +1,18 @@
 model WasherLog {
-  id          Int      @id @default(autoincrement())
-  washerId    Int      @map("washer_id")
-  washType    String   @map("wash_type")
-  
-  washer      Washer   @relation(fields: [washerId], references: [id])
+  id       Int    @id @default(autoincrement())
+  washerId Int    @map("washer_id")
+  washType String @map("wash_type")
+  duration Int?   @default(45)
+  revenue  Float? @default(0)
 
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  // Operator
+  userId Int?  @map("user_id")
+  user   User? @relation(fields: [userId], references: [id])
+
+  washer Washer @relation(fields: [washerId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("washers_logs")
 }

@@ -8,6 +8,7 @@ router.use(authenticateToken);
 
 router.get('/', authorizePermission('washers_view'), washerController.getWashers);
 router.post('/', authorizePermission('washers_create'), washerController.createWasher);
+router.get('/:id/history', authorizePermission('washers_view'), washerController.getWasherHistory);
 router.post('/:id/toggle', authorizePermission('washers_toggle'), washerController.toggleWasher);
 
 export default router;

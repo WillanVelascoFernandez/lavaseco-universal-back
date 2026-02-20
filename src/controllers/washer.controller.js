@@ -10,7 +10,12 @@ export const getWashers = async (req, res) => {
       where: isSuperAdmin ? {} : {
         branchId: { in: branchIds }
       },
-      include: { branch: true },
+      include: { 
+        branch: true,
+        _count: {
+          select: { logs: true }
+        }
+      },
       orderBy: { id: 'asc' }
     });
     res.json(washers);
@@ -77,5 +82,21 @@ export const toggleWasher = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Error changing washer state' });
+  }
+};
+export const getWasherHistory = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const logs = await prisma.washerLog.findMany({
+      where: { washerId: parseInt(id) },
+      orderBy: { createdAt: 'desc' },
+      take: 50 // Limit to last 50 records for performance
+    });
+
+    res.json(logs);
+  } catch (error) {
+    console.error('Error in getWasherHistory:', error);
+    res.status(500).json({ message: 'Error retrieving washer history' });
   }
 };
