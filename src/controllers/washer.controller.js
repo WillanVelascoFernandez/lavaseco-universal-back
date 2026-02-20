@@ -90,8 +90,11 @@ export const getWasherHistory = async (req, res) => {
 
     const logs = await prisma.washerLog.findMany({
       where: { washerId: parseInt(id) },
+      include: {
+        user: { select: { name: true } }
+      },
       orderBy: { createdAt: 'desc' },
-      take: 50 // Limit to last 50 records for performance
+      take: 50
     });
 
     res.json(logs);

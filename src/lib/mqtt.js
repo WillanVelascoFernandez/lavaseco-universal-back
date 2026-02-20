@@ -36,15 +36,37 @@ client.on('message', async (topic, message) => {
       const data = JSON.parse(message.toString());
 
       if (type === 'washers') {
+        const washer = await prisma.washer.findUnique({
+          where: { id },
+          include: { branch: true }
+        });
+
         const record = await prisma.washerLog.create({
-          data: { washerId: id, washType: data.washType || 'Normal' }
+          data: { 
+            washerId: id, 
+            washType: data.washType || 'Normal',
+            duration: data.duration || 45,
+            revenue: data.revenue || washer?.branch?.washerPrice || 0,
+            userId: data.userId || null
+          }
         });
         console.log('💾 Washer usage recorded:', record.id);
         publishMessage(`washers/${id}/confirmation`, { status: 'OK', recordId: record.id });
       } 
       else if (type === 'dryers') {
+        const dryer = await prisma.dryer.findUnique({
+          where: { id },
+          include: { branch: true }
+        });
+
         const record = await prisma.dryerLog.create({
-          data: { dryerId: id, dryType: data.dryType || 'Normal' }
+          data: { 
+            dryerId: id, 
+            dryType: data.dryType || 'Normal',
+            duration: data.duration || 45,
+            revenue: data.revenue || dryer?.branch?.dryerPrice || 0,
+            userId: data.userId || null
+          }
         });
         console.log('💾 Dryer usage recorded:', record.id);
         publishMessage(`dryers/${id}/confirmation`, { status: 'OK', recordId: record.id });

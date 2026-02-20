@@ -1,17 +1,34 @@
-import { subDays, startOfDay, addMinutes, isAfter } from 'date-fns';
+import { subDays, isAfter } from 'date-fns';
 
 export async function seedLogs(prisma) {
-  console.log('  └─ Seeding Usage Logs (Simulating 30 days)...');
+  console.log('  └─ Seeding Usage Logs (Simulating 30 days with Operators and Prices)...');
 
   // Clear existing logs
   await prisma.washerLog.deleteMany();
   await prisma.dryerLog.deleteMany();
 
-  const washers = await prisma.washer.findMany();
-  const dryers = await prisma.dryer.findMany();
+  const washers = await prisma.washer.findMany({ include: { branch: true } });
+  const dryers = await prisma.dryer.findMany({ include: { branch: true } });
+  const users = await prisma.user.findMany();
+  
+  if (users.length === 0) {
+    console.log('⚠️ No users found to assign as operators. Skipping logs seeder.');
+    return;
+  }
 
-  const washTypes = ['Normal', 'Pesado', 'Delicado', 'Rápido'];
-  const dryTypes = ['Calor Alto', 'Calor Medio', 'Calor Bajo', 'Aire Frío'];
+  const washTypes = [
+    { name: 'Normal', duration: 45 },
+    { name: 'Pesado', duration: 60 },
+    { name: 'Delicado', duration: 40 },
+    { name: 'Rápido', duration: 30 }
+  ];
+  
+  const dryTypes = [
+    { name: 'Calor Alto', duration: 45 },
+    { name: 'Calor Medio', duration: 50 },
+    { name: 'Calor Bajo', duration: 60 },
+    { name: 'Aire Frío', duration: 30 }
+  ];
 
   const now = new Date();
   const thirtyDaysAgo = subDays(now, 30);
@@ -19,13 +36,12 @@ export async function seedLogs(prisma) {
   // Seed logs for each washer
   for (const washer of washers) {
     let currentDate = thirtyDaysAgo;
+    const price = washer.branch?.washerPrice || 15;
     
     while (!isAfter(currentDate, now)) {
-      // Simulate 3-8 washes per day
       const dailyWashes = Math.floor(Math.random() * 6) + 3;
       
       for (let i = 0; i < dailyWashes; i++) {
-        // Random time during the day (8 AM - 8 PM)
         const hour = Math.floor(Math.random() * 12) + 8;
         const minute = Math.floor(Math.random() * 60);
         const logDate = new Date(currentDate);
@@ -33,18 +49,20 @@ export async function seedLogs(prisma) {
 
         if (isAfter(logDate, now)) continue;
 
+        const type = washTypes[Math.floor(Math.random() * washTypes.length)];
+        const operator = users[Math.floor(Math.random() * users.length)];
+
         await prisma.washerLog.create({
           data: {
             washerId: washer.id,
-            washType: washTypes[Math.floor(Math.random() * washTypes.length)],
+            washType: type.name,
+            duration: type.duration,
+            revenue: price,
+            userId: operator.id,
             createdAt: logDate
           }
         });
       }
-      
-      currentDate = subDays(currentDate, -1); // Move to next day (using subDays with negative value)
-      // Actually subDays(currentDate, -1) works, or just add 1 day.
-      // Better:
       currentDate = new Date(currentDate.getTime() + 24 * 60 * 60 * 1000);
     }
   }
@@ -52,6 +70,7 @@ export async function seedLogs(prisma) {
   // Seed logs for each dryer
   for (const dryer of dryers) {
     let currentDate = thirtyDaysAgo;
+    const price = dryer.branch?.dryerPrice || 15;
     
     while (!isAfter(currentDate, now)) {
       const dailyDries = Math.floor(Math.random() * 6) + 3;
@@ -64,15 +83,20 @@ export async function seedLogs(prisma) {
 
         if (isAfter(logDate, now)) continue;
 
+        const type = dryTypes[Math.floor(Math.random() * dryTypes.length)];
+        const operator = users[Math.floor(Math.random() * users.length)];
+
         await prisma.dryerLog.create({
           data: {
             dryerId: dryer.id,
-            dryType: dryTypes[Math.floor(Math.random() * dryTypes.length)],
+            dryType: type.name,
+            duration: type.duration,
+            revenue: price,
+            userId: operator.id,
             createdAt: logDate
           }
         });
       }
-      
       currentDate = new Date(currentDate.getTime() + 24 * 60 * 60 * 1000);
     }
   }

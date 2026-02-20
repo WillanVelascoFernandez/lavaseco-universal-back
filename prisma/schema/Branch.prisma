@@ -5,6 +5,8 @@ model Branch {
   phone       String?
   washerPrice Float   @default(0) @map("washer_price")
   dryerPrice  Float   @default(0) @map("dryer_price")
+  washerTime  Int     @default(45) @map("washer_time")
+  dryerTime   Int     @default(45) @map("dryer_time")
 
   // Machines in this branch
   washers Washer[]

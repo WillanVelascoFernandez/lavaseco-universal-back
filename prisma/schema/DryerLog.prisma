@@ -1,12 +1,18 @@
 model DryerLog {
-  id          Int      @id @default(autoincrement())
-  dryerId     Int      @map("dryer_id")
-  dryType     String   @map("dry_type")
-  
-  dryer       Dryer    @relation(fields: [dryerId], references: [id])
+  id       Int    @id @default(autoincrement())
+  dryerId  Int    @map("dryer_id")
+  dryType  String @map("dry_type")
+  duration Int?   @default(45)
+  revenue  Float? @default(0)
 
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  // Operator
+  userId Int?  @map("user_id")
+  user   User? @relation(fields: [userId], references: [id])
+
+  dryer Dryer @relation(fields: [dryerId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("dryers_logs")
 }

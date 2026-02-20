@@ -25,14 +25,16 @@ export const getBranches = async (req, res) => {
 
 export const createBranch = async (req, res) => {
   try {
-    const { name, address, phone, washerPrice, dryerPrice } = req.body;
+    const { name, address, phone, washerPrice, dryerPrice, washerTime, dryerTime } = req.body;
     const newBranch = await prisma.branch.create({
       data: { 
         name, 
         address, 
         phone,
         washerPrice: washerPrice ? parseFloat(washerPrice) : 0,
-        dryerPrice: dryerPrice ? parseFloat(dryerPrice) : 0
+        dryerPrice: dryerPrice ? parseFloat(dryerPrice) : 0,
+        washerTime: washerTime ? parseInt(washerTime) : 45,
+        dryerTime: dryerTime ? parseInt(dryerTime) : 45
       }
     });
 
@@ -65,7 +67,7 @@ export const createBranch = async (req, res) => {
 export const updateBranch = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, address, phone, washerPrice, dryerPrice } = req.body;
+    const { name, address, phone, washerPrice, dryerPrice, washerTime, dryerTime } = req.body;
 
     const updatedBranch = await prisma.branch.update({
       where: { id: parseInt(id) },
@@ -74,7 +76,9 @@ export const updateBranch = async (req, res) => {
         address,
         phone,
         washerPrice: washerPrice !== undefined ? parseFloat(washerPrice) : undefined,
-        dryerPrice: dryerPrice !== undefined ? parseFloat(dryerPrice) : undefined
+        dryerPrice: dryerPrice !== undefined ? parseFloat(dryerPrice) : undefined,
+        washerTime: washerTime !== undefined ? parseInt(washerTime) : undefined,
+        dryerTime: dryerTime !== undefined ? parseInt(dryerTime) : undefined
       }
     });
 

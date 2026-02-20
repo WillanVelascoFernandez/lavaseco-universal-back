@@ -84,6 +84,9 @@ export const getDryerHistory = async (req, res) => {
 
     const logs = await prisma.dryerLog.findMany({
       where: { dryerId: parseInt(id) },
+      include: {
+        user: { select: { name: true } }
+      },
       orderBy: { createdAt: 'desc' },
       take: 50
     });
