@@ -29,6 +29,7 @@ export const getUsers = async (req, res) => {
       name: user.name,
       active: user.active,
       role: user.role,
+      lastActive: user.lastActive,
       branches: user.branches.map(b => b.branch)
     }));
 
